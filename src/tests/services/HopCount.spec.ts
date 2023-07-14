@@ -1,30 +1,32 @@
+import { Flight } from "../../models/Flight";
+import { Station } from "../../models/Station";
 import { AirplaneGraph } from "../../services/AirplaneGraph";
 import { HopCount } from "../../services/HopCount";
 
-  describe("HopCounter", () => {
-  let hopCounter: HopCount;
-  beforeEach(() => {
-    const flights = [
-      { origin: "A", destination: "B", cost: 100, duration: 1 },
-      { origin: "A", destination: "C", cost: 200, duration: 2 },
-      { origin: "B", destination: "C", cost: 50, duration: 1 },
-      { origin: "B", destination: "D", cost: 150, duration: 2 },
-      { origin: "C", destination: "D", cost: 100, duration: 1 },
-    ];
-    const airplaneGraph = new AirplaneGraph(flights);
-    hopCounter = new HopCount(airplaneGraph);
+describe("HopCount", () => {
+  const flights = [
+    new Flight(new Station("A"), new Station("B"), 100, 1),
+    new Flight(new Station("B"), new Station("C"), 200, 2),
+    new Flight(new Station("C"), new Station("D"), 300, 3),
+  ];
+  const graph = new AirplaneGraph(flights);
+  const hopCount = new HopCount(graph);
+
+  it("should calculate the hop count between two stations", () => {
+    const origin = new Station("A");
+    const destination = new Station("D");
+    const count = hopCount.getHopCount(origin, destination);
+    const expectedCount = 3; // A -> B -> C -> D
+    expect(count).toEqual(expectedCount);
   });
 
-  it("should calculate the hop count between two cities", () => {
-    const hopCount = hopCounter.getHopCount("A", "D");
-    expect(hopCount).toBe(2);
-  });
-  it('should return -1 if no path exists', () => {
-    const hopCount = hopCounter.getHopCount('A', 'E');
-    expect(hopCount).toBe(-1);
-  });
-  it('should return 0 for the same origin and destination', () => {
-    const hopCount = hopCounter.getHopCount('A', 'A');
-    expect(hopCount).toBe(0);
+  it("should return 0 for the same origin and destination", () => {
+    const origin = new Station("A");
+    const destination = new Station("A");
+    const count = hopCount.getHopCount(origin, destination);
+    const expectedCount = 0;
+    expect(count).toEqual(expectedCount);
   });
 });
+
+

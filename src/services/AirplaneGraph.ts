@@ -1,4 +1,5 @@
 import { Flight } from "../models/Flight";
+import { Station } from "../models/Station";
 
 export class AirplaneGraph {
   private flights: Flight[];
@@ -7,11 +8,11 @@ export class AirplaneGraph {
     this.flights = flights;
   }
 
-  public getNeighbors(city: string): string[] {
-    const neighbors: string[] = [];
+  public getNeighbors(station: Station): Station[] {
+    const neighbors: Station[] = [];
 
     for (const flight of this.flights) {
-      if (flight.origin === city) {
+      if (flight.origin.name === station.name) {
         neighbors.push(flight.destination);
       }
     }
@@ -19,64 +20,61 @@ export class AirplaneGraph {
     return neighbors;
   }
 
-  // cost calculation
-  public getFlight(origin: string, destination: string): Flight | undefined {
+  public getFlight(origin: Station, destination: Station): Flight | undefined {
     return this.flights.find(
-      (flight) => flight.origin === origin && flight.destination === destination
+      (flight) =>
+        flight.origin.name === origin.name && flight.destination.name === destination.name
     );
   }
 
-  // cost calculation
-  // hop count
-  public getShortestPath(origin: string, destination: string): string[] {
+  public getShortestPath(origin: Station, destination: Station): Station[] {
+    const queue: Station[] = [];
     const distances: Record<string, number> = {};
-    const previous: Record<string, string | null> = {};
-    const queue: string[] = [];
+    const previous: Record<string, Station | null> = {};
 
-    distances[origin] = 0;
+    for (const flight of this.flights) {
+      distances[flight.origin.name] = Infinity;
+      distances[flight.destination.name] = Infinity;
+      previous[flight.origin.name] = null;
+      previous[flight.destination.name] = null;
+    }
+
+    distances[origin.name] = 0;
     queue.push(origin);
 
     while (queue.length > 0) {
-      const current = queue.shift() as string;
+      const current = queue.shift() as Station;
 
-      if (current === destination) {
+      if (current.name === destination.name) {
         break;
       }
 
       const neighbors = this.getNeighbors(current);
 
       for (const neighbor of neighbors) {
-        const distance = distances[current] + 1;
+        const flight = this.getFlight(current, neighbor);
+        if (!flight) {
+          continue;
+        }
 
-        if (!distances[neighbor] || distance < distances[neighbor]) {
-          distances[neighbor] = distance;
-          previous[neighbor] = current;
+        const distance = distances[current.name] + flight.duration;
+        if (distance < distances[neighbor.name]) {
+          distances[neighbor.name] = distance;
+          previous[neighbor.name] = current;
           queue.push(neighbor);
         }
       }
     }
-    if (!previous[destination]) {
-      return [];
-    }
-    return this.reconstructPath(origin, destination, previous);
-  }
 
-  
-  private reconstructPath(
-    origin: string,
-    destination: string,
-    previous: Record<string, string | null>
-  ): string[] {
-    const path: string[] = [];
-    let current = destination;
+    const shortestPath: Station[] = [];
+    let currentStation: Station | null = destination;
 
-    while (current !== origin) {
-      path.unshift(current);
-      current = previous[current] as string;
+    while (currentStation !== null) {
+      shortestPath.unshift(currentStation);
+      currentStation = previous[currentStation.name];
     }
 
-    path.unshift(origin);
-    return path;
+    return shortestPath;
   }
 }
 

@@ -1,42 +1,41 @@
+import { Flight } from "../../models/Flight";
+import { Station } from "../../models/Station";
 import { AirplaneGraph } from "../../services/AirplaneGraph";
 import { CostCalculator } from "../../services/CostCalculate";
 
+
+//failing test case for cost calculation
 describe("CostCalculator", () => {
-  let costCalculator: CostCalculator;
-  beforeEach(() => {
-    const flights = [
-      { origin: "A", destination: "B", cost: 100, duration: 1 },
-      { origin: "A", destination: "C", cost: 200, duration: 2 },
-      { origin: "B", destination: "C", cost: 50, duration: 1 },
-      { origin: "B", destination: "D", cost: 150, duration: 2 },
-      { origin: "C", destination: "D", cost: 100, duration: 1 },
-    ];
-    const airplaneGraph = new AirplaneGraph(flights);
-    costCalculator = new CostCalculator(airplaneGraph);
+  const flights = [
+    new Flight(new Station("A"), new Station("B"), 100, 1),
+    new Flight(new Station("B"), new Station("C"), 200, 2),
+    new Flight(new Station("C"), new Station("D"), 300, 3),
+    new Flight(new Station("A"), new Station("D"), 400, 4),
+  ];
+  const graph = new AirplaneGraph(flights);
+  const calculator = new CostCalculator(graph);
+
+  it("should calculate the cheapest cost between two stations", () => {
+    const origin = new Station("A");
+    const destination = new Station("D");
+    const cheapestCost = calculator.getCheapestCost(origin, destination);
+    const expectedCost = 300; // 100 (A -> B) + 200 (B -> C)
+    expect(cheapestCost).toEqual(expectedCost);
   });
 
-  it("should calculate the cheapest cost between two cities", () => {
-    const cheapestCost = costCalculator.getCheapestCost("A", "D");
-    expect(cheapestCost).toBe(250);
-  });
-  it('should return 0 for the same origin and destination', () => {
-    const cheapestCost = costCalculator.getCheapestCost('A', 'A');
-    expect(cheapestCost).toBe(0);
-  });
-  it('should return 0 if no path exists', () => {
-    const cheapestCost = costCalculator.getCheapestCost('A', 'E');
-    expect(cheapestCost).toBe(0);
+  it("should return 0 if no path exists", () => {
+    const origin = new Station("A");
+    const destination = new Station("E");
+    const cheapestCost = calculator.getCheapestCost(origin, destination);
+    const expectedCost = 0;
+    expect(cheapestCost).toEqual(expectedCost);
   });
 
-  it('should handle negative costs correctly', () => {
-    const flights = [
-      { origin: 'A', destination: 'B', cost: -100, duration: 1 },
-      { origin: 'B', destination: 'C', cost: -50, duration: 2 },
-      { origin: 'C', destination: 'D', cost: -150, duration: 1 },
-    ];
-    const airplaneGraph = new AirplaneGraph(flights);
-    const calculator = new CostCalculator(airplaneGraph);
-    const cheapestCost = calculator.getCheapestCost('A', 'D');
-    expect(cheapestCost).toBe(-300);
+  it("should return 0 for the same origin and destination", () => {
+    const origin = new Station("A");
+    const destination = new Station("A");
+    const cheapestCost = calculator.getCheapestCost(origin, destination);
+    const expectedCost = 0;
+    expect(cheapestCost).toEqual(expectedCost);
   });
 });

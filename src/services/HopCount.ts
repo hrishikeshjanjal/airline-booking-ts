@@ -1,3 +1,4 @@
+import { Station } from "../models/Station";
 import { AirplaneGraph } from "./AirplaneGraph";
 
 export class HopCount {
@@ -5,7 +6,7 @@ export class HopCount {
   constructor(graph: AirplaneGraph) {
     this.graph = graph;
   }
-  public getHopCount(origin: string, destination: string): number {
+  public getHopCount(origin: Station, destination: Station): number {
     if (origin === destination) {
       return 0;
     }
@@ -13,3 +14,4 @@ export class HopCount {
     return shortestPath.length - 1;
   }
 }
+
